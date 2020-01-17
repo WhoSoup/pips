@@ -38,7 +38,7 @@ Also add the tracking of pUSD
 ===Implementation===
 
 Implementation found:
-- Pegnetd <https://github.com/pegnet/pegnetd/pull/113
-- Pegnet <https://github.com/pegnet/pegnet/pull/346>
+* Pegnetd https://github.com/pegnet/pegnetd/pull/113
+* Pegnet https://github.com/pegnet/pegnet/pull/346
 
 <!-- ==Motivation== -->
