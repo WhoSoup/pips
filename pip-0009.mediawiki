@@ -41,4 +41,7 @@ Implementation found:
 * Pegnetd https://github.com/pegnet/pegnetd/pull/113
 * Pegnet https://github.com/pegnet/pegnet/pull/346
 
-<!-- ==Motivation== -->
+==Motivation==
+
+These currencies adhere to [https://github.com/pegnet/pips/blob/master/pip-0005.mediawiki pip-005] and are already covered by the existing data sources.
+pUSD needs to be tracked to implement pip-008
