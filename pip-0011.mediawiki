@@ -8,7 +8,7 @@
   Comments-URI: https://github.com/pegnet/pips/wiki/Comments:PIP-0011
   Status: Draft
   Type: Standards Track
-  Created: 2020-02-05
+  Created: 2020-02-17
   License: BSD-2-Clause
 </pre>
 
@@ -16,7 +16,7 @@
 
 Miners submit financial data every factom-minute rather than once a block to facilitate faster finality for transactions, which can be settled in the next minute rather than the next block. To avoid strain on the underlying Factom blockchain, one OPR will hold multiple price points, which are submitted at the end of the block.
 
-==Introduction==
+==Motivation==
 
 Why do we want a special structure for mining one-minute OPRs? It's easy to assume that we can just have miners submit OPRs every 60 seconds but unfortunately, this approach is difficult. Miners are self-limiting right now and only submit entries which they believe will stand a chance. This is called the ''threshold'' and results in an average of 150 OPRs being submitted every block by miners. If we simply multiply that by 10, we get 1500 entries every block or about 2.5 TPS. 
 
