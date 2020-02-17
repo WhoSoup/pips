@@ -18,11 +18,11 @@ Miners submit financial data every factom-minute rather than once a block to fac
 
 ==Introduction==
 
-Why do we want a special structure for mining one-minute OPRs? It's easy to assume that we can just have miners submit OPRs every 60 seconds but unfortunately this approach is difficulty. Miners are self-limiting right now and only submit entries which they believe will stand a chance. This is called the ''threshold'' and results in an average of 150 OPRs being submitted every block by miners. If we simply multiply that by 10, we get 1500 entries every block or about 2.5 TPS. 
+Why do we want a special structure for mining one-minute OPRs? It's easy to assume that we can just have miners submit OPRs every 60 seconds but unfortunately, this approach is difficult. Miners are self-limiting right now and only submit entries which they believe will stand a chance. This is called the ''threshold'' and results in an average of 150 OPRs being submitted every block by miners. If we simply multiply that by 10, we get 1500 entries every block or about 2.5 TPS. 
 
-Factom is capable of handling that load but since these entries are all written at the same time in bursts, network congestion may lead to some entries missing their intended minute mark. To counteract this, miners would have to submit their entries early to ensure they arrive in time. Additionally, to start the next block in the chain, the winners of the previous set needs to be known. These winners may not arrive immediately, leading to a delay between the start of a minute and the ability to start mining.
+Factom is capable of handling that load but since these entries are all written at the same time in bursts, network congestion may lead to some entries missing their intended minute mark. To counteract this, miners would have to submit their entries early to ensure they arrive on time. Additionally, to start the next block in the chain, the winners of the previous set needs to be known. These winners may not arrive immediately, leading to a delay between the start of a minute and the ability to start mining.
 
-Both of these cut into the already small 60 second window. Currently, miners submit shares 60 seconds before the end of block for this reason. A realistic window of mining may end up being around 45 seconds or less and may lead to less than 60% of a 10m block being mined (8 oprs at 45 seconds each). This is counterproductive to Proof of Work and decreases the security of PegNet.
+Both of these cut into the already small 60-second window. Currently, miners submit shares 60 seconds before the end of the block for this reason. A realistic window of mining may end up being around 45 seconds or less and may lead to less than 60% of a 10m block being mined (8 OPRs at 45 seconds each). This is counterproductive to Proof of Work and decreases the security of PegNet.
 
 Further, Factom is a Proof of Authority chain. Entries are not entirely secured until the block is finished and signed by all the authority nodes. While it is possible to retrieve entries as they come in and have not yet been finalized, this practice is not recommended and not all factomd nodes are capable of keeping up with this process. Nodes that run slightly outdated factomd software may not be able to do this at all, due to minor disagreements in the block being built, and depend on processing the block once it has been finalized. This is not a problem for existing miners but it would shut them out of one-minute OPRs. 
 
@@ -39,7 +39,7 @@ The genesis chunk of an OPR contains the following:
 * Coinbase payout address
 * Self-reported miner ID
 * Current block height
-* List of shorthashes of the entryhashes of the winning OPRs in the previous block
+* List of short-hashes of the entry-hashes of the winning OPRs in the previous block
 * Price data for assets
 
 Chunk X contains:
@@ -56,23 +56,23 @@ The Factom Entry has the following ExtIDs:
 * Nonce of chunk N
 * Self-reported difficulty of chunk N
 
-The Proof of Work of chunk X is calculated by LXRHashing the SHA-256 hash of chunk X appended by a nonce, then taking the first 8 bytes as a 64-bit unsigned integer. The PoW Score of the OPR Chain is the '''lowest PoW Score of a chunk in the chain'''. Two OPRs are considered '''duplicates''' if the both the SHA-256 hashes of genesis chunks and their respective nonces are the same.
+The Proof of Work of chunk X is calculated by LXRHashing the SHA-256 hash of chunk X appended by a nonce, then taking the first 8 bytes as a 64-bit unsigned integer. The PoW Score of the OPR Chain is the '''lowest PoW Score of a chunk in the chain'''. Two OPRs are considered '''duplicates''' if both the SHA-256 hashes of genesis chunks and their respective nonces are the same.
 
 
 === Mining ===
 
-Starting with minute 1, the genesis chunk is mined as before. All results that do not meet the minimum treshold are discarded. At the end of minute 1, the miner is left with the N best nonces. These are considered the N "bases" for mining and are the maximum possible OPRs the miner can submit for that block. 
+Starting with minute 1, the genesis chunk is mined as before. All results that do not meet the minimum threshold are discarded. At the end of minute 1, the miner is left with the N best nonces. These are considered the N "bases" for mining and are the maximum possible OPRs the miner can submit for that block. 
 
 ==== Strategy One (More OPRs) ====
-In minute X, the miner pulls new currency data. Chunk X is created for the best base and mined until a PoW score above the treshold is found. The miner then moves on to the second-best base and creates a chunk X for that, mining it until a PoW score above the treshold is found. Repeat for all bases.
+In minute X, the miner pulls new currency data. Chunk X is created for the best base and mined until a PoW score above the threshold is found. The miner then moves on to the second-best base and creates a chunk X for that, mining it until a PoW score above the threshold is found. Repeat for all bases.
 
 If there is time left and all N bases have a chunk X, mine chunk X for the best base until the PoW score of chunk X is equal or higher than that of the minimum of chunks 1..X-1. Repeat for all bases. If a base has a chunk X with a score lower than the existing minimum, that difficulty becomes the new minimum for the base.
 
-Repeat this process until minute 9, when the Factom entry is created and submitted. Should there be a chunk where the miner can't find a PoW score that is higher than the treshold, that base is abandoned.
+Repeat this process until minute 9, when the Factom entry is created and submitted. Should there be a chunk where the miner can't find a PoW score that is higher than the threshold, that base is abandoned.
 
 ==== Strategy Two (Best possible OPRs) ====
 
-Instead of mining until the treshold, the chunk is mined until a PoW score equal or higher to the base is found. If no suitable PoW score is found in time, the best PoW for chunk X becomes the new minimum and miner moves on to the next chunk. If the miner finishes early, the remaining time can be used to try and build up the next best base.
+Instead of mining until the threshold, the chunk is mined until a PoW score equal or higher to the base is found. If no suitable PoW score is found in time, the best PoW for chunk X becomes the new minimum and miner moves on to the next chunk. If the miner finishes early, the remaining time can be used to try and build up the next best base.
 
 ==== Strategy Three (Specific amount of OPRs) ====
 
@@ -80,9 +80,9 @@ The miner picks the N best bases, then mines them all simultaneously. As soon as
 
 === Comparison of Mining Strategies ===
 
-These results were collected [https://github.com/WhoSoup/sim-minuteopr running a simulator], set to run for 1,000 blocks divided into 8 minute chunks. Each chunk is allocated the same hashpower of 1,000,000 hashes/chunk. Mining results are random unsigned 64-bit numbers, with a minimum threshold of 0xffff000000000000. 
+These results were collected [https://github.com/WhoSoup/sim-minuteopr running a simulator], set to run for 1,000 blocks divided into 8-minute chunks. Each chunk is allocated the same hashpower of 1,000,000 hashes/chunk. Mining results are random unsigned 64-bit numbers, with a minimum threshold of 0xffff000000000000. 
 
-The X axis of the graph is how many OPRs were submitted (>= threshold) that block. The Y-axis is the PoW score higher than threshold. The higher the better. The highest OPR attained is blue, the second highest OPR is red, third highest yellow, fourth green. Other colors should be interpreted from context.
+The X-axis of the graph is how many OPRs were submitted (>= threshold) that block. The Y-axis is the PoW score higher than the threshold. The higher the better. The highest OPR attained is blue, the second-highest OPR is red, third-highest yellow, fourth green. Other colors should be interpreted from context.
 
 Please note that there likely is no "best" strategy. Miners with very little hashpower (relative to the network hash rate) are probably best served with strategy two. Miners with an overwhelming hashrate (like a pool) can benefit more from a high-OPR strategy one or three.
 
@@ -111,7 +111,7 @@ As expected, the majority of submissions end up being the sole OPR with the best
 
 ==== Strategy Three ====
 
-These results were generated by aiming at a few different OPR amounts. Past 4 OPRs, the simulation hashrate was not enough to always produce the requested amount of OPRs. The decline in PoW score with a target of 8 and 16 simultaneous OPRs is dramatic, as each OPR is starving for hashrates. Notable once again is that the single-OPR strategy yields similar results to Stategy One (1 OPR) and Strategy Two. 
+These results were generated by aiming at a few different OPR amounts. Past 4 OPRs, the simulation hashrate was not enough to always produce the requested amount of OPRs. The decline in PoW score with a target of 8 and 16 simultaneous OPRs is dramatic, as each OPR is starving for hashrates. Notable once again is that the single-OPR strategy yields similar results to Strategy One (1 OPR) and Strategy Two. 
 
 [[File:pip-0011/strat-3-1.png]]
 
@@ -132,10 +132,10 @@ Grading remains largely the same, except that the minimum chunk PoW score of an 
 
 The additional querying of price points will put additional scrutiny on the list of APIs. With a ten-minute OPR, a miner makes up to 144 requests a day or around 4,400 a month. Multiplying that by eight yields around 1,200 a day or around 35,000 a month. Additionally, APIs need to be able to refresh prices every minute, rather than every ten minutes.
 
-Taking the [https://coinmarketcap.com/api/pricing/ CoinMarketCap API] as example, 4,400 requests a month are well within the 10,000 monthly limit of the "Basic" plan. However, 35,000 requests would require the $35/month "Hobbyist" plan. Depending on the API priority settings the community decides on, these costs could be prohibitively expensive for individual miners.
+Taking the [https://coinmarketcap.com/api/pricing/ CoinMarketCap API] as an example, 4,400 requests a month are well within the 10,000 monthly limit of the "Basic" plan. However, 35,000 requests would require the $35/month "Hobbyist" plan. Depending on the API priority settings the community decides on, these costs could be prohibitively expensive for individual miners.
 
 == Final Thoughts ==
 
-While this proposal is called one-minute pricing, it is important to note that due to technical limitations of being a second layer solutions, there are only 8 price points per block. That results in a rather unfortunate distribution of seven one-minute divisions, and one three-minute division. This is still an improvement over the current situation but it introduces additional complexity. The community will also have to weigh if the additional cost of API subscriptions outweighs the benefits of one-minute timings.
+While this proposal is called one-minute pricing, it is important to note that due to technical limitations of being a second layer solution, there are only 8 price points per block. That results in a rather unfortunate distribution of seven one-minute divisions, and one three-minute division. This is still an improvement over the current situation but it introduces additional complexity. The community will also have to weigh if the additional cost of API subscriptions outweighs the benefits of one-minute timings.
 
 While it is not the perfect solution, this proposal reduces the distance between conversions and market prices without compromising the security provided by Proof of Work mining.
