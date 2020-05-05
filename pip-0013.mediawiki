@@ -141,7 +141,7 @@ The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afte
 The second ROLL is 268 (10281977943512021889 % '''2051'''), selecting FA2DEF. Afterward, the table looks like:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA3GHJ...||600||600
 |-
