@@ -113,15 +113,15 @@ Example:
 {|
 ! Address !! Stake !! Running Total
 |-
-|FA1ABC...|800|800
+|FA1ABC...||800||800
 |-
-|FA2DEF...|400|1200
+|FA2DEF...||400||1200
 |-
-|FA3GHJ...|600|1800
+|FA3GHJ...||600||1800
 |-
-|FA1123...|50|1850
+|FA1123...||50||1850
 |-
-|FA1456...|1000|2850
+|FA1456...||1000||2850
 |}
 
 The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afterward, the table looks like:
