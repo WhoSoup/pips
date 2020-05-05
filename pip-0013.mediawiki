@@ -21,13 +21,13 @@ The goal is to counterbalance the submission of Oracle Price Records of miners b
 ==Staking Price Record (SPR)==
 
 ExtIDs:
-    * version byte (byte, default 0)
-    * RCD of the payout address
-    * signature covering [ExtID 0, ExtID 1, SHA256(Content)]
+* version byte (byte, default 0)
+* RCD of the payout address
+* signature covering [ExtID 0, ExtID 1, SHA256(Content)]
 Content: (protobuf)
-    * Payout Address (string)
-    * Height (int32)
-    * Assets ([]uint64)
+* Payout Address (string)
+* Height (int32)
+* Assets ([]uint64)
 
 
 Prices are pulled at minute one, same time as the miners. SPRs are written to a new chain (PegNet / MainNet / StakingPriceRecords) at minute 8. Entries are valid if:
@@ -40,7 +40,7 @@ Prices are pulled at minute one, same time as the miners. SPRs are written to a 
 
 The stake of SPR in block N is calculated as the sum of all assets belonging to the address during block N-1, with each pAsset converted to pUSD using the winning rates of block N-1, rounded down to the nearest whole pUSD. 
 
-Example: address FA123 has 150 pUSD, 9,876 PEG (rate = 0.0015), and 50 FCT (rate = 1.81). The resulting stake would be {{Inline-code | floor(150 + (9876 * 0.0015) + (50 * 1.81)) }} = {{Inline-code | floor(150 + 14.814 + 90.5)}} = {{Inline-code | floor(255.314)}} = {{Inline-code | 255}}.
+Example: address FA123 has 150 pUSD, 9,876 PEG (rate = 0.0015), and 50 FCT (rate = 1.81). The resulting stake would be '''floor(150 + (9876 * 0.0015) + (50 * 1.81))''' = '''floor(150 + 14.814 + 90.5)''' = '''floor(255.314)''' = '''255'''.
 
 ==Grading of SPRs==
 
@@ -48,16 +48,16 @@ To grade all the submissions, we first select N SPRs based on a weighted random 
 
 ===Weighted Random Selection Method A===
 
-All valid SPRs are kept in order in which they appear on the blockchain. The sum of all stakes is calculated as {{Inline-code | TOTAL}}. Once the winners of mining are graded, we can start selecting SPRs via pseudorandom rolls.
+All valid SPRs are kept in order in which they appear on the blockchain. The sum of all stakes is calculated as '''TOTAL'''. Once the winners of mining are graded, we can start selecting SPRs via pseudorandom rolls.
 
-For each SPR, we take {{Inline-code | SHA256(short-hashes of the winning OPRs appended with byte X)}} where X is the n-th SPR. To select 50 OPRs, X = [0, 1, 2, ..., 49]. The first 8 bytes of the resulting hash are converted to an unsigned 64-bit integer. The {{Inline-code | ROLL}} is that number modulo the {{Inline-code | TOTAL + 1}}. To find the appropriate SPR, we iterate through the list and keep a running sum of the stakes. The first SPR where the running sum results in a number greater or equal to the {{Inline-code | ROLL }} is selected. The SPR's stake is reduced by one and the TOTAL recalculated.
+For each SPR, we take <pre>SHA256(short-hashes of the winning OPRs appended with byte X)</pre> where X is the n-th SPR. To select 50 OPRs, X = [0, 1, 2, ..., 49]. The first 8 bytes of the resulting hash are converted to an unsigned 64-bit integer. The '''ROLL''' is that number modulo the '''TOTAL + 1'''. To find the appropriate SPR, we iterate through the list and keep a running sum of the stakes. The first SPR where the running sum results in a number greater or equal to the '''ROLL''' is selected. The SPR's stake is reduced by one and the TOTAL recalculated.
 
 Example:
 
 We'll use three random numbers: 7659415693840631838, 10281977943512021889, and 6537460775197907917, and an initial table of:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA1ABC...||800||800
 |-
@@ -73,7 +73,7 @@ We'll use three random numbers: 7659415693840631838, 10281977943512021889, and 6
 The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afterward, the table looks like:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA1ABC...||799||799
 |-
@@ -89,7 +89,7 @@ The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afte
 The second ROLL is 639 (10281977943512021889 % '''2850'''), selecting FA1ABC again. Afterward, the table looks like:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA1ABC...||798||798
 |-
@@ -111,7 +111,7 @@ Similar to A, but after a valid OPR is selected, it is removed from the pool, an
 Example:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA1ABC...|800|800
 |-
@@ -127,7 +127,7 @@ Example:
 The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afterward, the table looks like:
 
 {|
-! Address || Stake || Running Total
+! Address !! Stake !! Running Total
 |-
 |FA2DEF...||400||400
 |-
