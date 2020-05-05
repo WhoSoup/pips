@@ -50,7 +50,7 @@ To grade all the submissions, we first select N SPRs based on a weighted random 
 
 All valid SPRs are kept in order in which they appear on the blockchain. The sum of all stakes is calculated as '''TOTAL'''. Once the winners of mining are graded, we can start selecting SPRs via pseudorandom rolls.
 
-For each SPR, we take <pre>SHA256(short-hashes of the winning OPRs appended with byte X)</pre> where X is the n-th SPR. To select 50 OPRs, X = [0, 1, 2, ..., 49]. The first 8 bytes of the resulting hash are converted to an unsigned 64-bit integer. The '''ROLL''' is that number modulo the '''TOTAL + 1'''. To find the appropriate SPR, we iterate through the list and keep a running sum of the stakes. The first SPR where the running sum results in a number greater or equal to the '''ROLL''' is selected. The SPR's stake is reduced by one and the TOTAL recalculated.
+For each SPR, we take '''SHA256(short-hashes of the winning OPRs appended with byte X)''' where X is the n-th SPR. To select 50 OPRs, X = 0, 1, 2, ..., 49. The first 8 bytes of the resulting hash are converted to an unsigned 64-bit integer. The '''ROLL''' is that number modulo the '''TOTAL + 1'''. To find the appropriate SPR, we iterate through the list and keep a running sum of the stakes. The first SPR where the running sum results in a number greater or equal to the '''ROLL''' is selected. The SPR's stake is reduced by one and the TOTAL recalculated.
 
 Example:
 
