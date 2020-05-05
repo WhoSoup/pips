@@ -1,0 +1,167 @@
+
+<pre>
+  PIP: 13
+  Title: Staking Price Submissions
+  Layer: Consensus (hard fork)
+  Author: Who Soup <who.soup@gmail.com>
+  Comments-Summary: No comments yet.
+  Comments-URI: https://github.com/pegnet/pips/wiki/Comments:PIP-0013
+  Status: Draft
+  Type: Standards Track
+  Created: 2020-05-05
+  License: BSD-2-Clause
+</pre>
+
+
+==Abstract==
+
+The goal is to counterbalance the submission of Oracle Price Records of miners by allowing stakeholders to submit prices as well. Stake Price Records (SPRs) are permissionless, with the stake amount positively correlated to the likelihood the SPR is deemed a winner. A set of SPRs is picked using a pseudorandom algorithm and then graded via the V2 grading algorithm.
+
+
+==Staking Price Record (SPR)==
+
+ExtIDs:
+    * version byte (byte, default 0)
+    * RCD of the payout address
+    * signature covering [ExtID 0, ExtID 1, SHA256(Content)]
+Content: (protobuf)
+    * Payout Address (string)
+    * Height (int32)
+    * Assets ([]uint64)
+
+
+Prices are pulled at minute one, same time as the miners. SPRs are written to a new chain (PegNet / MainNet / StakingPriceRecords) at minute 8. Entries are valid if:
+* The height matches the block's height
+* The payout address matches the RCD
+* The signature is verified
+* It is not a duplicate of an existing (and valid) SPR with the same payout address
+
+==Stake==
+
+The stake of SPR in block N is calculated as the sum of all assets belonging to the address during block N-1, with each pAsset converted to pUSD using the winning rates of block N-1, rounded down to the nearest whole pUSD. 
+
+Example: address FA123 has 150 pUSD, 9,876 PEG (rate = 0.0015), and 50 FCT (rate = 1.81). The resulting stake would be {{Inline-code | floor(150 + (9876 * 0.0015) + (50 * 1.81)) }} = {{Inline-code | floor(150 + 14.814 + 90.5)}} = {{Inline-code | floor(255.314)}} = {{Inline-code | 255}}.
+
+==Grading of SPRs==
+
+To grade all the submissions, we first select N SPRs based on a weighted random selection process by stake. Those SPRs are then evaluated via the V2 grading algorithm.
+
+===Weighted Random Selection Method A===
+
+All valid SPRs are kept in order in which they appear on the blockchain. The sum of all stakes is calculated as {{Inline-code | TOTAL}}. Once the winners of mining are graded, we can start selecting SPRs via pseudorandom rolls.
+
+For each SPR, we take {{Inline-code | SHA256(short-hashes of the winning OPRs appended with byte X)}} where X is the n-th SPR. To select 50 OPRs, X = [0, 1, 2, ..., 49]. The first 8 bytes of the resulting hash are converted to an unsigned 64-bit integer. The {{Inline-code | ROLL}} is that number modulo the {{Inline-code | TOTAL + 1}}. To find the appropriate SPR, we iterate through the list and keep a running sum of the stakes. The first SPR where the running sum results in a number greater or equal to the {{Inline-code | ROLL }} is selected. The SPR's stake is reduced by one and the TOTAL recalculated.
+
+Example:
+
+We'll use three random numbers: 7659415693840631838, 10281977943512021889, and 6537460775197907917, and an initial table of:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA1ABC...||800||800
+|-
+|FA2DEF...||400||1200
+|-
+|FA3GHJ...||600||1800
+|-
+|FA1123...||50||1850
+|-
+|FA1456...||1000||2850
+|}
+
+The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afterward, the table looks like:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA1ABC...||799||799
+|-
+|FA2DEF...||400||1199
+|-
+|FA3GHJ...||600||1799
+|-
+|FA1123...||50||1849
+|-
+|FA1456...||1000||2849
+|}
+
+The second ROLL is 639 (10281977943512021889 % '''2850'''), selecting FA1ABC again. Afterward, the table looks like:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA1ABC...||798||798
+|-
+|FA2DEF...||400||1198
+|-
+|FA3GHJ...||600||1798
+|-
+|FA1123...||50||1848
+|-
+|FA1456...||1000||2848
+|}
+
+The third ROLL is 1209 (6537460775197907917 % '''2849'''), selecting FA3GHJ.
+
+===Weighted Random Selection Method B===
+
+Similar to A, but after a valid OPR is selected, it is removed from the pool, and TOTAL is decremented by that SPR's stake. 
+
+Example:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA1ABC...|800|800
+|-
+|FA2DEF...|400|1200
+|-
+|FA3GHJ...|600|1800
+|-
+|FA1123...|50|1850
+|-
+|FA1456...|1000|2850
+|}
+
+The first ROLL is 380 (7659415693840631838 % '''2851'''), selecting FA1ABC. Afterward, the table looks like:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA2DEF...||400||400
+|-
+|FA3GHJ...||600||1000
+|-
+|FA1123...||50||1050
+|-
+|FA1456...||1000||2050
+|}
+
+The second ROLL is 268 (10281977943512021889 % '''2051'''), selecting FA2DEF. Afterward, the table looks like:
+
+{|
+! Address || Stake || Running Total
+|-
+|FA3GHJ...||600||600
+|-
+|FA1123...||50||650
+|-
+|FA1456...||1000||1650
+|}
+
+The third ROLL is 258 (6537460775197907917 % '''1651'''), selecting FA3GHJ.
+
+===Method A vs. Method B===
+
+The main advantage of method A is that it resembles mining, with the stake being a direct equivalent to hashpower. The downside is that this method is also susceptible to the same problems as PoW is: 51% attacks. Someone who has staked more than half of TOTAL can shift the arithmetic mean in their favor. 
+
+Method B solves that solution by removing SPRs after being selected but the enormous downside of that approach is that it incentivizes stakeholders to split their assets over multiple addresses. Two SPRs at 500 pUSD each are better than a single SPR at 1,000 pUSD. For this method to work, there needs to be an outside incentive to keep funds at a single address.
+
+There are also hybrid approaches, such as reducing the stake by a percentage after it was selected the first time, such as 10%. This decreases the chance one OPR has of being selected multiple times by a little bit but also not having a stark benefit of splitting their stake. If there is an added outside incentive to keep funds at a single address, this would be the way to go.
+
+===Other Mechanisms===
+
+The idea behind using the short-hashes of the winners of the miners to seed the pseudorandom algorithm is to prevent knowing the winners of the staking process before the block is finished. If the staking winners were known, miners could abandon their own prices and mine the winners of the staking process in order to maximize their chances.
+
+It is still possible to estimate prices from the SPRs and for this reason, staking submissions are encouraged to submit during minute 8. There is no benefit to submitting earlier or later in the block and at minute 8, their submissions don't overlap with the additional load of miners submitting OPRs.
